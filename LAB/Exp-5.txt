@@ -1,0 +1,138 @@
+# ============================================================
+# MLA02 - FUNDAMENTALS OF MACHINE LEARNING
+# EXPERIMENT 5 - K-NEAREST NEIGHBOURS (K-NN)
+# ============================================================
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.neighbors import KNeighborsClassifier
+
+# ------------------------------------------------------------
+# 1. Training Dataset
+# ------------------------------------------------------------
+
+X = np.array([
+    [1, 2],
+    [2, 3],
+    [3, 3],
+    [6, 7],
+    [7, 8],
+    [8, 8]
+])
+
+y = np.array([
+    'A', 'A', 'A',
+    'B', 'B', 'B'
+])
+
+print("TRAINING DATA")
+print("-" * 30)
+
+for point, label in zip(X, y):
+    print(point, "-> Class", label)
+
+# ------------------------------------------------------------
+# 2. Create and Train K-NN Model
+# ------------------------------------------------------------
+
+k = 3
+
+model = KNeighborsClassifier(n_neighbors=k)
+model.fit(X, y)
+
+# ------------------------------------------------------------
+# 3. Test a New Data Point
+# ------------------------------------------------------------
+
+test_point = np.array([[5, 6]])
+
+prediction = model.predict(test_point)
+
+distances, indices = model.kneighbors(test_point)
+
+print("\nK =", k)
+print("Test Point:", test_point[0])
+print("Nearest Neighbours:")
+
+for index, distance in zip(indices[0], distances[0]):
+    print(
+        X[index],
+        "Class:", y[index],
+        "Distance:", round(distance, 3)
+    )
+
+print("\nPredicted Class:", prediction[0])
+
+# ------------------------------------------------------------
+# 4. Plot Classification Regions
+# ------------------------------------------------------------
+
+x_min, x_max = 0, 9
+y_min, y_max = 0, 9
+
+xx, yy = np.meshgrid(
+    np.arange(x_min, x_max, 0.05),
+    np.arange(y_min, y_max, 0.05)
+)
+
+grid_points = np.c_[xx.ravel(), yy.ravel()]
+grid_predictions = model.predict(grid_points)
+
+# Convert classes A and B into numerical values
+Z = (grid_predictions == 'B').astype(int)
+Z = Z.reshape(xx.shape)
+
+plt.figure(figsize=(9, 7))
+
+plt.contourf(
+    xx, yy, Z,
+    levels=[-0.5, 0.5, 1.5],
+    alpha=0.25,
+    cmap='coolwarm'
+)
+
+# Plot training samples
+plt.scatter(
+    X[y == 'A', 0], X[y == 'A', 1],
+    marker='o', s=100, label='Class A',
+    edgecolors='black'
+)
+
+plt.scatter(
+    X[y == 'B', 0], X[y == 'B', 1],
+    marker='s', s=100, label='Class B',
+    edgecolors='black'
+)
+
+# Plot test point
+plt.scatter(
+    test_point[0, 0], test_point[0, 1],
+    marker='*', s=300, label='Test Point',
+    edgecolors='black'
+)
+
+plt.annotate(
+    f'Predicted: {prediction[0]}',
+    (test_point[0, 0], test_point[0, 1]),
+    xytext=(15, 12),
+    textcoords='offset points',
+    fontsize=11
+)
+
+plt.xlabel('Feature 1')
+plt.ylabel('Feature 2')
+plt.title('K-NN Classification (K = 3)')
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.xlim(x_min, x_max)
+plt.ylim(y_min, y_max)
+plt.tight_layout()
+plt.show()
+
+# ------------------------------------------------------------
+# 5. Result
+# ------------------------------------------------------------
+
+print("\nRESULT:")
+print("K-NN classification completed successfully.")
+print("The test point belongs to Class", prediction[0])

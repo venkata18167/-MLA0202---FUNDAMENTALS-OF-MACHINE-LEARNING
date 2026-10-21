@@ -1,0 +1,160 @@
+
+# ============================================================
+# MLA02 - FUNDAMENTALS OF MACHINE LEARNING
+# EXPERIMENT 7 - LOGISTIC REGRESSION
+# ============================================================
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, confusion_matrix
+
+# ------------------------------------------------------------
+# 1. Create Dataset
+# ------------------------------------------------------------
+
+# Input feature: Hours studied
+X = np.array([
+    [1], [2], [2.5], [3], [3.5],
+    [4], [4.5], [5], [5.5], [6],
+    [6.5], [7], [7.5], [8]
+])
+
+# Target: 0 = Fail, 1 = Pass
+y = np.array([
+    0, 0, 0, 0, 0,
+    0, 1, 1, 1, 1,
+    1, 1, 1, 1
+])
+
+print("DATASET")
+print("-" * 35)
+print("Hours Studied | Result")
+
+for hours, result in zip(X.flatten(), y):
+    label = "Pass" if result == 1 else "Fail"
+    print(f"{hours:5.1f}         | {label}")
+
+# ------------------------------------------------------------
+# 2. Split Data
+# ------------------------------------------------------------
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y,
+    test_size=0.25,
+    random_state=42,
+    stratify=y
+)
+
+# ------------------------------------------------------------
+# 3. Train Logistic Regression Model
+# ------------------------------------------------------------
+
+model = LogisticRegression()
+model.fit(X_train, y_train)
+
+# ------------------------------------------------------------
+# 4. Make Predictions
+# ------------------------------------------------------------
+
+y_pred = model.predict(X_test)
+y_prob = model.predict_proba(X_test)[:, 1]
+
+print("\nTEST RESULTS")
+print("-" * 45)
+print("Hours\tActual\tPredicted\tPass Probability")
+
+for hours, actual, predicted, probability in zip(
+    X_test.flatten(), y_test, y_pred, y_prob
+):
+    actual_label = "Pass" if actual == 1 else "Fail"
+    predicted_label = "Pass" if predicted == 1 else "Fail"
+
+    print(
+        f"{hours:4.1f}\t{actual_label}\t"
+        f"{predicted_label}\t\t{probability:.3f}"
+    )
+
+# ------------------------------------------------------------
+# 5. Calculate Accuracy and Confusion Matrix
+# ------------------------------------------------------------
+
+accuracy = accuracy_score(y_test, y_pred)
+
+print("\nConfusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
+
+print(f"\nAccuracy: {accuracy * 100:.2f}%")
+
+# ------------------------------------------------------------
+# 6. Plot Logistic Regression Curve
+# ------------------------------------------------------------
+
+hours_range = np.linspace(0, 9, 300).reshape(-1, 1)
+probabilities = model.predict_proba(hours_range)[:, 1]
+
+plt.figure(figsize=(9, 6))
+
+# Actual training dataset
+plt.scatter(
+    X.flatten(),
+    y,
+    color="blue",
+    s=65,
+    label="Actual Results"
+)
+
+# Logistic regression probability curve
+plt.plot(
+    hours_range.flatten(),
+    probabilities,
+    color="red",
+    linewidth=2.5,
+    label="Logistic Regression Curve"
+)
+
+# Classification threshold
+plt.axhline(
+    y=0.5,
+    color="green",
+    linestyle="--",
+    label="Probability Threshold = 0.5"
+)
+
+plt.xlabel("Hours Studied")
+plt.ylabel("Probability of Passing")
+plt.title("Logistic Regression - Student Pass Prediction")
+
+plt.yticks(
+    np.arange(0, 1.1, 0.1)
+)
+
+plt.ylim(-0.05, 1.05)
+plt.xlim(0, 9)
+plt.grid(True, linestyle="--", alpha=0.4)
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+# ------------------------------------------------------------
+# 7. Predict a New Sample
+# ------------------------------------------------------------
+
+new_student = np.array([[5.0]])
+
+prediction = model.predict(new_student)[0]
+probability = model.predict_proba(new_student)[0, 1]
+
+print("\nNEW STUDENT PREDICTION")
+print("Study Hours:", new_student[0, 0])
+print("Pass Probability:", round(probability, 3))
+print("Predicted Result:", "Pass" if prediction == 1 else "Fail")
+
+# ------------------------------------------------------------
+# 8. Result
+# ------------------------------------------------------------
+
+print("\nRESULT:")
+print("Logistic Regression was implemented successfully.")
