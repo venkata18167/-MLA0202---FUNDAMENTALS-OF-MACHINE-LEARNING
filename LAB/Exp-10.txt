@@ -1,0 +1,88 @@
+
+# Experiment 10: Expectation-Maximization Algorithm
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+from sklearn.datasets import make_blobs
+from sklearn.mixture import GaussianMixture
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import silhouette_score
+
+# Step 1: Generate a sample dataset
+X, y_true = make_blobs(
+    n_samples=200,
+    centers=3,
+    cluster_std=1.2,
+    random_state=42
+)
+
+# Step 2: Standardize the dataset
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Step 3: Initialize the Gaussian Mixture Model
+gmm = GaussianMixture(
+    n_components=3,
+    covariance_type="full",
+    random_state=42,
+    n_init=5
+)
+
+# Step 4: Fit the model using the EM algorithm
+gmm.fit(X_scaled)
+
+# Step 5: Predict cluster labels
+clusters = gmm.predict(X_scaled)
+
+# Step 6: Display results
+print("EXPERIMENT 10: EXPECTATION-MAXIMIZATION")
+print("Number of data points:", len(X))
+print("Number of clusters:", gmm.n_components)
+print("Number of EM iterations:", gmm.n_iter_)
+print("Model converged:", gmm.converged_)
+print("Log-likelihood:", round(gmm.score(X_scaled) * len(X_scaled), 2))
+print("Silhouette Score:", round(
+    silhouette_score(X_scaled, clusters), 3
+))
+
+print("\nNumber of points in each cluster:")
+for cluster_id in range(gmm.n_components):
+    print(
+        f"Cluster {cluster_id}:",
+        np.sum(clusters == cluster_id),
+        "points"
+    )
+
+# Step 7: Visualize the clusters
+plt.figure(figsize=(9, 6))
+
+plt.scatter(
+    X[:, 0],
+    X[:, 1],
+    c=clusters,
+    cmap="viridis",
+    s=45,
+    edgecolors="black",
+    alpha=0.8
+)
+
+# Plot the estimated cluster centers
+centers_original = scaler.inverse_transform(gmm.means_)
+
+plt.scatter(
+    centers_original[:, 0],
+    centers_original[:, 1],
+    marker="X",
+    s=250,
+    color="red",
+    edgecolors="black",
+    label="Cluster Centers"
+)
+
+plt.title("Clustering Using Expectation-Maximization (GMM)")
+plt.xlabel("Feature 1")
+plt.ylabel("Feature 2")
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.show()
